@@ -459,7 +459,39 @@ const TR = {
   "A second attachment on your secondary.":"Ein zweiter Aufsatz an der Sekundärwaffe.",
   "Carry two primary weapons.":"Trage zwei Primärwaffen.",
   "Carry a second lethal grenade.":"Trage eine zweite tödliche Granate.",
-  "Carry a second tactical grenade.":"Trage eine zweite taktische Granate."
+  "Carry a second tactical grenade.":"Trage eine zweite taktische Granate.",
+  /* ---- item names ---- */
+  // weapons with translatable (non-model) names — model codes stay identical in the German release
+  "Assault Shield":"Sturmschild","Combat Knife":"Kampfmesser","Executioner":"Scharfrichter",
+  // attachments
+  "Reflex Sight":"Reflexvisier","EOTech Sight":"EOTech-Visier","ACOG Scope":"ACOG-Visier",
+  "Hybrid Optic":"Hybridvisier","Target Finder":"Zielfinder","Dual Band":"Dualband",
+  "Iron Sights":"Kimme und Korn","Fast Mag":"Schnellmagazin","Long Barrel":"Langer Lauf",
+  "Quickdraw":"Schnellzug","Fore Grip":"Fronthandgriff","Adjustable Stock":"Verstellbarer Kolben",
+  "Laser Sight":"Laservisier","Suppressor":"Schalldämpfer","FMJ":"Vollmantel","Select Fire":"Feuerwahl",
+  // perks
+  "Lightweight":"Leichtgewicht","Hardline":"Hardliner","Flak Jacket":"Splitterschutz",
+  "Scavenger":"Sammler","Ghost":"Geist","Blind Eye":"Blindes Auge","Toughness":"Zähigkeit",
+  "Cold Blooded":"Kaltblütig","Fast Hands":"Flinke Hände","Hard Wired":"Störsicher",
+  "Dexterity":"Geschicklichkeit","Extreme Conditioning":"Extremkondition","Awareness":"Wachsamkeit",
+  "Dead Silence":"Totenstille","Tactical Mask":"Taktische Maske","Engineer":"Ingenieur",
+  // lethal
+  "Frag":"Splittergranate","Combat Axe":"Kampfaxt","Bouncing Betty":"Springmine",
+  // tactical
+  "Concussion":"Schockgranate","Flashbang":"Blendgranate","Smoke Grenade":"Rauchgranate",
+  "Sensor Grenade":"Sensorgranate","Shock Charge":"Schockladung","EMP Grenade":"EMP-Granate",
+  "Trophy System":"Trophäensystem","Black Hat PDA":"Black-Hat-PDA","Tactical Insertion":"Taktische Platzierung",
+  // wildcards
+  "Perk 1 Greed":"Perk-1-Gier","Perk 2 Greed":"Perk-2-Gier","Perk 3 Greed":"Perk-3-Gier",
+  "Primary Gunfighter":"Primär-Revolverheld","Secondary Gunfighter":"Sekundär-Revolverheld",
+  "Danger Close":"Feuersturm","Tactician":"Taktiker",
+  // scorestreaks
+  "Hunter Killer":"Hunter-Killer-Drohne","Care Package":"Versorgungspaket","Counter-UAV":"Gegen-UAV",
+  "Guardian":"Wächter","Hellstorm Missile":"Höllensturm-Rakete","Lightning Strike":"Blitzschlag",
+  "Sentry Gun":"Wachgeschütz","Death Machine":"Todesmaschine","War Machine":"Kriegsmaschine",
+  "Dragonfire":"Drachenfeuer","Stealth Chopper":"Tarnkappen-Heli","Orbital VSAT":"Orbital-VSAT",
+  "Escort Drone":"Eskortdrohne","EMP Systems":"EMP-Systeme","VTOL Warship":"VTOL-Kampfjet",
+  "K9 Unit":"K9-Einheit","Swarm":"Schwarm"
 };
 const de = s => (LANG==="de" && TR[s]) ? TR[s] : s;
 
@@ -533,15 +565,16 @@ function renderRack(){
     const v=slotValue(sl.id);
     if(Array.isArray(v)){
       if(v.length){
-        body.appendChild(el("div","v", sl.id==="wildcards"?`${v.length} ${t("equipped")}`:v[0]));
+        const names = sl.id==="wildcards" ? v.map(k=>de(WILDCARDS.find(w=>w[2]===k)[0])) : v.map(de);
+        body.appendChild(el("div","v", sl.id==="wildcards"?`${v.length} ${t("equipped")}`:names[0]));
         const tags=el("div","tags");
-        v.forEach(x=>tags.appendChild(el("span","tag",x)));
+        names.forEach(x=>tags.appendChild(el("span","tag",x)));
         body.appendChild(tags);
       } else {
         body.appendChild(el("div","v empty",t("empty")));
       }
     } else {
-      const d=el("div","v"+(v?"":" empty"), v||t("empty"));
+      const d=el("div","v"+(v?"":" empty"), v?de(v):t("empty"));
       body.appendChild(d);
     }
     b.appendChild(body);
@@ -630,7 +663,7 @@ function renderWeaponOpts(body){
     list.forEach(w=>{
       const sel=cur===w;
       const dis=!sel && !cur && !canAdd(1);
-      optsWrap.appendChild(makeOpt(w,"",sel,dis,()=>{
+      optsWrap.appendChild(makeOpt(de(w),"",sel,dis,()=>{
         if(isPrimary) S.primary = sel?null:w; else S.secondary = sel?null:w;
         if(sel){ // clearing weapon clears its attachments
           if(isPrimary) S.primaryAtt=[]; else S.secondaryAtt=[];
@@ -648,14 +681,14 @@ function renderAttachOpts(body){
   const max=isP?(has("pg")?3:2):(has("sg")?2:1);
   if(!weapon){ setNote(t("note").needWeapon(isP?t("primarySide"):t("secondarySide")));
     body.appendChild(el("div","empty-hint",t("note").noWeapon)); return; }
-  setNote(t("note").attUsed(weapon,arr.length,max));
+  setNote(t("note").attUsed(de(weapon),arr.length,max));
   const optsWrap=el("div","opts");
   Object.entries(ATTACHMENTS).forEach(([cat,list])=>{
     optCat(optsWrap,de(cat));
     list.forEach(([n,d])=>{
       const sel=arr.includes(n);
       const dis=!sel && (arr.length>=max || !canAdd(1));
-      optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
+      optsWrap.appendChild(makeOpt(de(n),de(d),sel,dis,()=>{
         if(sel) arr.splice(arr.indexOf(n),1);
         else if(arr.length<max && canAdd(1)) arr.push(n);
         update();
@@ -674,7 +707,7 @@ function renderPerkOpts(body){
   PERKS[tier].forEach(([n,d])=>{
     const sel=arr.includes(n);
     const dis=!sel && (arr.length>=max || !canAdd(1));
-    optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
+    optsWrap.appendChild(makeOpt(de(n),de(d),sel,dis,()=>{
       if(sel) arr.splice(arr.indexOf(n),1);
       else if(arr.length<max && canAdd(1)) arr.push(n);
       update();
@@ -688,7 +721,7 @@ function renderMultiOpts(body,list,arr,max,wcName){
   list.forEach(([n,d])=>{
     const sel=arr.includes(n);
     const dis=!sel && (arr.length>=max || !canAdd(1));
-    optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
+    optsWrap.appendChild(makeOpt(de(n),de(d),sel,dis,()=>{
       if(sel) arr.splice(arr.indexOf(n),1);
       else if(arr.length<max && canAdd(1)) arr.push(n);
       update();
@@ -702,7 +735,7 @@ function renderWildcards(body){
   WILDCARDS.forEach(([n,d,key])=>{
     const sel=S.wildcards.includes(key);
     const dis=!sel && !canAdd(1);
-    optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
+    optsWrap.appendChild(makeOpt(de(n),de(d),sel,dis,()=>{
       if(sel){
         S.wildcards.splice(S.wildcards.indexOf(key),1);
         enforceWildcard(key);
@@ -735,7 +768,7 @@ function renderStreaks(){
     const sel=S.streaks.includes(n);
     const b=el("button","chip"+(sel?" sel":"")); b.type="button";
     b.setAttribute("aria-pressed",sel);
-    b.appendChild(el("span","cn",n));
+    b.appendChild(el("span","cn",de(n)));
     b.appendChild(el("span","cc",cost));
     b.addEventListener("click",()=>{
       if(sel) S.streaks.splice(S.streaks.indexOf(n),1);
@@ -803,16 +836,17 @@ function buildSummary(){
   L.push("║   "+title+" ".repeat(pad)+"║");
   L.push("╚═══════════════════════════════════════╝");
   L.push("");
-  line(E.primary, (S.primary||"—") + (S.primaryAtt.length?"  ["+S.primaryAtt.join(", ")+"]":""));
-  line(E.secondary, (S.secondary||"—") + (S.secondaryAtt.length?"  ["+S.secondaryAtt.join(", ")+"]":""));
-  line(E.perk1, S.perk1.join(", ")||"—");
-  line(E.perk2, S.perk2.join(", ")||"—");
-  line(E.perk3, S.perk3.join(", ")||"—");
-  line(E.lethal, S.lethal.join(", ")||"—");
-  line(E.tactical, S.tactical.join(", ")||"—");
-  line(E.wildcards, S.wildcards.length? S.wildcards.map(k=>WILDCARDS.find(w=>w[2]===k)[0]).join(", ") : "—");
+  const j = a => a.map(de).join(", ");
+  line(E.primary, (S.primary?de(S.primary):"—") + (S.primaryAtt.length?"  ["+j(S.primaryAtt)+"]":""));
+  line(E.secondary, (S.secondary?de(S.secondary):"—") + (S.secondaryAtt.length?"  ["+j(S.secondaryAtt)+"]":""));
+  line(E.perk1, j(S.perk1)||"—");
+  line(E.perk2, j(S.perk2)||"—");
+  line(E.perk3, j(S.perk3)||"—");
+  line(E.lethal, j(S.lethal)||"—");
+  line(E.tactical, j(S.tactical)||"—");
+  line(E.wildcards, S.wildcards.length? S.wildcards.map(k=>de(WILDCARDS.find(w=>w[2]===k)[0])).join(", ") : "—");
   L.push("");
-  line(E.streaks, S.streaks.length? S.streaks.join(", ") : "—");
+  line(E.streaks, S.streaks.length? j(S.streaks) : "—");
   L.push("");
   L.push("─".repeat(41));
   const used=pointsUsed();
