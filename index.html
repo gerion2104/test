@@ -159,17 +159,18 @@ footer{margin-top:26px; padding-top:14px; border-top:1px solid var(--line); colo
       <span class="kilo disp" style="font-size:26px">CALL<span style="color:var(--accent)">°</span>DUTY</span>
       <div>
         <h1>Black Ops <span style="color:var(--accent)">II</span> — Create-A-Class</h1>
-        <div class="sub">Pick 10 · Loadout Terminal</div>
+        <div class="sub" id="tSub">Pick 10 · Loadout Terminal</div>
       </div>
     </div>
     <div class="spacer"></div>
-    <button class="btn" id="themeBtn" aria-label="Toggle theme">◐ Theme</button>
-    <button class="btn" id="randBtn">⟳ Randomize</button>
-    <button class="btn accent" id="exportBtn">Export Class ▸</button>
+    <button class="btn" id="langBtn" aria-label="Sprache umschalten">🌐 DE</button>
+    <button class="btn" id="themeBtn" aria-label="Toggle theme">◐ <span id="tTheme">Theme</span></button>
+    <button class="btn" id="randBtn">⟳ <span id="tRand">Randomize</span></button>
+    <button class="btn accent" id="exportBtn"><span id="tExport">Export Class</span> ▸</button>
   </header>
 
   <section class="meter" aria-label="Allocation points">
-    <span class="lbl">Allocation</span>
+    <span class="lbl" id="tAlloc">Allocation</span>
     <div class="pips" id="pips" aria-hidden="true"></div>
     <div class="count" id="count"><b>0</b><small> / 10 PTS</small></div>
   </section>
@@ -178,13 +179,13 @@ footer{margin-top:26px; padding-top:14px; border-top:1px solid var(--line); colo
     <!-- LEFT: slot rack -->
     <div>
       <div class="card">
-        <div class="hd"><span class="tick"></span> Loadout</div>
+        <div class="hd"><span class="tick"></span> <span id="tLoadout">Loadout</span></div>
         <div class="rack" id="rack"></div>
       </div>
 
       <div class="card streaks">
         <div class="hd"><span class="tick"></span> Scorestreaks</div>
-        <div class="streakbar">Select your streaks · earned by score, not just kills. <span style="flex:1"></span> Cheapest earns first · Total cost <b id="ssCost">0</b></div>
+        <div class="streakbar"><span id="tStreakInfo">Select your streaks · earned by score, not just kills.</span> <span style="flex:1"></span> <span id="tStreakTotal">Cheapest earns first · Total cost</span> <b id="ssCost">0</b></div>
         <div class="chips" id="streaks"></div>
       </div>
     </div>
@@ -204,14 +205,14 @@ footer{margin-top:26px; padding-top:14px; border-top:1px solid var(--line); colo
     </div>
   </div>
 
-  <footer>
+  <footer id="tFooter">
     Fan-made loadout tool · <em>Call of Duty: Black Ops II</em> and all weapon, perk &amp; scorestreak names are © Activision / Treyarch.<br>
     Not affiliated with or endorsed by Activision. Built for fun.
   </footer>
 </div>
 
 <dialog id="exportDlg">
-  <div class="dhd"><h3>Class Summary</h3><button class="x" id="dlgClose" aria-label="Close">×</button></div>
+  <div class="dhd"><h3 id="tDlgTitle">Class Summary</h3><button class="x" id="dlgClose" aria-label="Close">×</button></div>
   <pre id="exportText"></pre>
   <div class="dft">
     <button class="btn" id="copyBtn">Copy to clipboard</button>
@@ -322,6 +323,146 @@ const SCORESTREAKS = [
 ];
 const MAX_POINTS = 10;
 
+/* ---------- I18N ---------- */
+let LANG = localStorage.getItem("bo2lang") || "en";
+const UI = {
+  en:{
+    sub:"Pick 10 · Loadout Terminal", theme:"Theme", rand:"Randomize", export:"Export Class",
+    langBtn:"🌐 DE", alloc:"Allocation", pts:"PTS", loadout:"Loadout",
+    streakInfo:"Select your streaks · earned by score, not just kills.",
+    streakTotal:"Cheapest earns first · Total cost",
+    dlgTitle:"Class Summary", copy:"Copy to clipboard", copied:"Copied ✓", copyFail:"Copy failed", done:"Done",
+    footer:'Fan-made loadout tool · <em>Call of Duty: Black Ops II</em> and all weapon, perk &amp; scorestreak names are © Activision / Treyarch.<br>Not affiliated with or endorsed by Activision. Built for fun.',
+    selectSlot:"Select a slot", selectSlotSub:"— tap any loadout slot to the left —",
+    buildTitle:"Build your class",
+    buildBody:"Ten allocation points. Every weapon, attachment, perk,<br>grenade and wildcard costs one.",
+    chooseOne:"CHOOSE ONE · 1 PT", maxEach:n=>`MAX ${n} · 1 PT EACH`,
+    wcSub:"1 PT EACH · UNLOCK EXTRA SLOTS",
+    empty:"— empty —", equipped:"equipped", pt:"PT", ptsSuffix:"S",
+    overBudget:"⚠ OVER BUDGET", fullLoadout:"✓ FULL LOADOUT", unspent:n=>`${n} unspent`,
+    slots:{primary:"Primary Weapon",primaryAtt:"Primary Attachments",secondary:"Secondary Weapon",
+      secondaryAtt:"Secondary Attachment",perk1:"Perk 1",perk2:"Perk 2",perk3:"Perk 3",
+      lethal:"Lethal",tactical:"Tactical",wildcards:"Wildcards"},
+    exp:{header:"BLACK OPS II — CUSTOM CLASS",primary:"PRIMARY",secondary:"SECONDARY",perk1:"PERK 1",
+      perk2:"PERK 2",perk3:"PERK 3",lethal:"LETHAL",tactical:"TACTICAL",wildcards:"WILDCARDS",
+      streaks:"SCORESTREAKS",alloc:n=>`ALLOCATION: ${n} / ${MAX_POINTS} points`},
+    note:{
+      overkill:"★ Overkill active — your secondary slot now holds a second primary weapon.",
+      needWeapon:s=>`Equip a ${s} weapon first to add attachments.`,
+      noWeapon:"No weapon in this slot yet.",
+      attUsed:(w,a,m)=>`${w} · ${a}/${m} attachments used.`,
+      greedOn:t=>`★ ${t} Greed active — up to two ${t} perks.`,
+      greedOff:t=>`Add the ${t} Greed wildcard for a second ${t} perk.`,
+      multiOn:w=>`★ ${w} active — carry two.`,
+      multiOff:w=>`Add the ${w} wildcard to carry two.`,
+      wildcards:"Each wildcard costs 1 point and unlocks an extra slot or rule. Removing one drops any picks it enabled."
+    },
+    primarySide:"primary", secondarySide:"secondary"
+  },
+  de:{
+    sub:"Pick 10 · Ausrüstungsterminal", theme:"Design", rand:"Zufall", export:"Klasse exportieren",
+    langBtn:"🌐 EN", alloc:"Punkte", pts:"PKT", loadout:"Ausrüstung",
+    streakInfo:"Wähle deine Streaks · verdient durch Punkte, nicht nur Kills.",
+    streakTotal:"Günstigster zuerst · Gesamtkosten",
+    dlgTitle:"Klassen-Übersicht", copy:"In Zwischenablage", copied:"Kopiert ✓", copyFail:"Fehler", done:"Fertig",
+    footer:'Fan-Ausrüstungstool · <em>Call of Duty: Black Ops II</em> sowie alle Waffen-, Perk- &amp; Scorestreak-Namen sind © Activision / Treyarch.<br>Nicht mit Activision verbunden oder von Activision unterstützt. Nur zum Spaß.',
+    selectSlot:"Slot wählen", selectSlotSub:"— tippe links auf einen Ausrüstungs-Slot —",
+    buildTitle:"Erstelle deine Klasse",
+    buildBody:"Zehn Punkte. Jede Waffe, jeder Aufsatz, Perk,<br>jede Granate und jeder Joker kostet einen.",
+    chooseOne:"EINE WÄHLEN · 1 PKT", maxEach:n=>`MAX ${n} · JE 1 PKT`,
+    wcSub:"JE 1 PKT · SCHALTET SLOTS FREI",
+    empty:"— leer —", equipped:"ausgerüstet", pt:"PKT", ptsSuffix:"",
+    overBudget:"⚠ ÜBER BUDGET", fullLoadout:"✓ VOLLE KLASSE", unspent:n=>`${n} übrig`,
+    slots:{primary:"Primärwaffe",primaryAtt:"Primär-Aufsätze",secondary:"Sekundärwaffe",
+      secondaryAtt:"Sekundär-Aufsatz",perk1:"Perk 1",perk2:"Perk 2",perk3:"Perk 3",
+      lethal:"Tödlich",tactical:"Taktisch",wildcards:"Joker"},
+    exp:{header:"BLACK OPS II — EIGENE KLASSE",primary:"PRIMÄR",secondary:"SEKUNDÄR",perk1:"PERK 1",
+      perk2:"PERK 2",perk3:"PERK 3",lethal:"TÖDLICH",tactical:"TAKTISCH",wildcards:"JOKER",
+      streaks:"SCORESTREAKS",alloc:n=>`PUNKTE: ${n} / ${MAX_POINTS} Punkte`},
+    note:{
+      overkill:"★ Overkill aktiv — dein Sekundär-Slot trägt jetzt eine zweite Primärwaffe.",
+      needWeapon:s=>`Rüste zuerst eine ${s} aus, um Aufsätze hinzuzufügen.`,
+      noWeapon:"Noch keine Waffe in diesem Slot.",
+      attUsed:(w,a,m)=>`${w} · ${a}/${m} Aufsätze belegt.`,
+      greedOn:t=>`★ ${t} Greed aktiv — bis zu zwei ${t}-Perks.`,
+      greedOff:t=>`Rüste den Joker „${t} Greed“ für einen zweiten ${t}-Perk aus.`,
+      multiOn:w=>`★ ${w} aktiv — trage zwei.`,
+      multiOff:w=>`Rüste den Joker „${w}“ aus, um zwei zu tragen.`,
+      wildcards:"Jeder Joker kostet 1 Punkt und schaltet einen Slot oder eine Regel frei. Entfernst du ihn, fallen die dadurch ermöglichten Auswahlen weg."
+    },
+    primarySide:"Primärwaffe", secondarySide:"Sekundärwaffe"
+  }
+};
+const t = k => UI[LANG][k];
+/* content translations (EN -> DE); weapon/perk/wildcard/streak proper names stay as-is */
+const TR = {
+  // weapon categories
+  "Assault Rifles":"Sturmgewehre","SMGs":"Maschinenpistolen","LMGs":"Leichte MGs",
+  "Sniper Rifles":"Scharfschützengewehre","Shotguns":"Schrotflinten","Special":"Spezial",
+  "Pistols":"Pistolen","Launchers":"Werfer","Optics":"Optiken","Rails & Barrel":"Schienen & Lauf",
+  // attachment descriptions
+  "Precision red-dot sight.":"Präzises Leuchtpunktvisier.",
+  "Holographic sight, wider view.":"Holografisches Visier, größeres Sichtfeld.",
+  "Magnified optic for range.":"Vergrößernde Optik für Distanz.",
+  "Toggle between reflex & ACOG.":"Wechsel zwischen Reflex & ACOG.",
+  "Diamond-locks onto enemies.":"Markiert Gegner mit einer Raute.",
+  "Millimeter scanner sees through smoke.":"Millimeterscanner sieht durch Rauch.",
+  "Thermal scope, ranged targets.":"Wärmebild-Zielfernrohr für Distanz.",
+  "Swap default sights.":"Ändert das Standardvisier.",
+  "Faster reloads.":"Schnelleres Nachladen.",
+  "Increased range.":"Erhöhte Reichweite.",
+  "Faster aim-down-sight.":"Schnelleres Zielen (ADS).",
+  "Reduced recoil.":"Weniger Rückstoß.",
+  "Faster strafe & ADS movement.":"Schnellere Bewegung beim Zielen.",
+  "Tighter hip-fire spread.":"Geringere Hüftfeuer-Streuung.",
+  "Silenced, stays off radar.":"Schalldämpfer, bleibt vom Radar verborgen.",
+  "Extra damage to vehicles & surfaces.":"Mehr Schaden an Fahrzeugen & Oberflächen.",
+  "Toggle semi / full auto.":"Wechsel Einzel-/Dauerfeuer.",
+  // perk descriptions
+  "Move faster, no fall damage.":"Schneller unterwegs, kein Fallschaden.",
+  "Scorestreaks cost 1 less point.":"Scorestreaks kosten 1 Punkt weniger.",
+  "Resist explosive damage.":"Weniger Explosionsschaden.",
+  "Resupply ammo from the dead.":"Munition von Gefallenen aufnehmen.",
+  "Off radar while moving vs UAV.":"In Bewegung unsichtbar für UAV.",
+  "Undetectable by AI & air support.":"Unsichtbar für KI & Luftunterstützung.",
+  "Flinch less when shot.":"Weniger Zucken bei Treffern.",
+  "Resist target finders & AI targeting.":"Schutz vor Zielfinder & KI-Zielerfassung.",
+  "Faster swaps & equipment use.":"Schnellerer Waffen- & Ausrüstungswechsel.",
+  "Immune to Counter-UAV & EMP.":"Immun gegen Gegen-UAV & EMP.",
+  "Faster mantle & aim after sprint.":"Schnelleres Klettern & Zielen nach dem Sprint.",
+  "Sprint for longer.":"Längerer Sprint.",
+  "Enemy movement is louder.":"Gegnerische Bewegungen sind lauter.",
+  "Your movement is silent.":"Deine Bewegungen sind lautlos.",
+  "Resist flash, concussion & gas.":"Schutz vor Blend-, Schock- & Gasgranaten.",
+  "See & re-roll equipment, delay streaks.":"Ausrüstung sehen & neu würfeln, Streaks verzögern.",
+  // lethal
+  "Cookable timed grenade.":"Zeitgranate, vorheizbar.",
+  "Timed sticky explosive.":"Klebender Sprengsatz mit Zeitzünder.",
+  "One-hit thrown axe, retrievable.":"Wurfaxt, tötet sofort, aufsammelbar.",
+  "Pops up and detonates.":"Springt hoch und explodiert.",
+  "Remote-detonated charge.":"Ferngezündete Ladung.",
+  // tactical
+  "Slows enemy movement & aim.":"Verlangsamt Bewegung & Zielen des Gegners.",
+  "Blinds & deafens.":"Blendet & betäubt.",
+  "Screening smoke cloud.":"Verdeckende Rauchwolke.",
+  "Pings nearby enemies.":"Ortet nahe Gegner.",
+  "Stuns enemies who trip it.":"Betäubt Gegner, die sie auslösen.",
+  "Disables electronics & HUD.":"Deaktiviert Elektronik & HUD.",
+  "Destroys incoming projectiles.":"Zerstört anfliegende Projektile.",
+  "Hack equipment & care packages.":"Hackt Ausrüstung & Care-Pakete.",
+  "Set your respawn point.":"Legt deinen Respawn-Punkt fest.",
+  // wildcard descriptions
+  "Equip a second Perk 1.":"Rüste einen zweiten Perk 1 aus.",
+  "Equip a second Perk 2.":"Rüste einen zweiten Perk 2 aus.",
+  "Equip a second Perk 3.":"Rüste einen zweiten Perk 3 aus.",
+  "A third attachment on your primary.":"Ein dritter Aufsatz an der Primärwaffe.",
+  "A second attachment on your secondary.":"Ein zweiter Aufsatz an der Sekundärwaffe.",
+  "Carry two primary weapons.":"Trage zwei Primärwaffen.",
+  "Carry a second lethal grenade.":"Trage eine zweite tödliche Granate.",
+  "Carry a second tactical grenade.":"Trage eine zweite taktische Granate."
+};
+const de = s => (LANG==="de" && TR[s]) ? TR[s] : s;
+
 /* ---------- STATE ---------- */
 const S = {
   primary:null, primaryAtt:[],
@@ -388,24 +529,24 @@ function renderRack(){
     if(activeSlot===sl.id) b.classList.add("active");
     b.appendChild(el("span","ico",sl.icon));
     const body=el("div","body");
-    body.appendChild(el("div","k",sl.label));
+    body.appendChild(el("div","k",t("slots")[sl.id]));
     const v=slotValue(sl.id);
     if(Array.isArray(v)){
       if(v.length){
-        body.appendChild(el("div","v", sl.id==="wildcards"?`${v.length} equipped`:v[0]));
+        body.appendChild(el("div","v", sl.id==="wildcards"?`${v.length} ${t("equipped")}`:v[0]));
         const tags=el("div","tags");
         v.forEach(x=>tags.appendChild(el("span","tag",x)));
         body.appendChild(tags);
       } else {
-        body.appendChild(el("div","v empty","— empty —"));
+        body.appendChild(el("div","v empty",t("empty")));
       }
     } else {
-      const d=el("div","v"+(v?"":" empty"), v||"— empty —");
+      const d=el("div","v"+(v?"":" empty"), v||t("empty"));
       body.appendChild(d);
     }
     b.appendChild(body);
     const cost=slotCost(sl.id);
-    const c=el("div","cost"); c.innerHTML= cost? `<b>${cost}</b> PT`+(cost>1?"S":"") : "0 PTS";
+    const c=el("div","cost"); c.innerHTML= cost? `<b>${cost}</b> ${t("pt")}`+(cost>1?t("ptsSuffix"):"") : `0 ${t("pts")}`;
     b.appendChild(c);
     b.addEventListener("click",()=>{ activeSlot=sl.id; renderRack(); renderPanel(); });
     rack.appendChild(b);
@@ -426,7 +567,7 @@ function renderMeter(){
   }
   const c=document.getElementById("count");
   c.classList.toggle("over",over);
-  c.innerHTML=`<b>${used}</b><small> / ${MAX_POINTS} PTS</small>`;
+  c.innerHTML=`<b>${used}</b><small> / ${MAX_POINTS} ${t("pts")}</small>`;
 }
 
 /* ---------- SELECTION PANEL ---------- */
@@ -440,22 +581,23 @@ function renderPanel(){
   const body=document.getElementById("panelBody");
   body.innerHTML=""; setNote("");
   if(!activeSlot){
-    title.firstChild.textContent="Select a slot";
-    sub.textContent="— tap any loadout slot to the left —";
-    body.innerHTML='<div class="empty-hint"><div class="big">Build your class</div>Ten allocation points. Every weapon, attachment, perk,<br>grenade and wildcard costs one.</div>';
+    title.firstChild.textContent=t("selectSlot");
+    sub.textContent=t("selectSlotSub");
+    body.innerHTML=`<div class="empty-hint"><div class="big">${t("buildTitle")}</div>${t("buildBody")}</div>`;
     return;
   }
+  const sl=t("slots");
   const meta={
-    primary:["Primary Weapon","CHOOSE ONE · 1 PT"],
-    primaryAtt:["Primary Attachments",`MAX ${has("pg")?3:2} · 1 PT EACH`],
-    secondary:["Secondary Weapon","CHOOSE ONE · 1 PT"],
-    secondaryAtt:["Secondary Attachment",`MAX ${has("sg")?2:1} · 1 PT EACH`],
-    perk1:["Perk 1",`MAX ${has("perk1")?2:1} · 1 PT EACH`],
-    perk2:["Perk 2",`MAX ${has("perk2")?2:1} · 1 PT EACH`],
-    perk3:["Perk 3",`MAX ${has("perk3")?2:1} · 1 PT EACH`],
-    lethal:["Lethal",`MAX ${has("dc")?2:1} · 1 PT EACH`],
-    tactical:["Tactical",`MAX ${has("tac")?2:1} · 1 PT EACH`],
-    wildcards:["Wildcards","1 PT EACH · UNLOCK EXTRA SLOTS"]
+    primary:[sl.primary,t("chooseOne")],
+    primaryAtt:[sl.primaryAtt,t("maxEach")(has("pg")?3:2)],
+    secondary:[sl.secondary,t("chooseOne")],
+    secondaryAtt:[sl.secondaryAtt,t("maxEach")(has("sg")?2:1)],
+    perk1:[sl.perk1,t("maxEach")(has("perk1")?2:1)],
+    perk2:[sl.perk2,t("maxEach")(has("perk2")?2:1)],
+    perk3:[sl.perk3,t("maxEach")(has("perk3")?2:1)],
+    lethal:[sl.lethal,t("maxEach")(has("dc")?2:1)],
+    tactical:[sl.tactical,t("maxEach")(has("tac")?2:1)],
+    wildcards:[sl.wildcards,t("wcSub")]
   }[activeSlot];
   title.firstChild.textContent=meta[0];
   sub.textContent=meta[1];
@@ -480,11 +622,11 @@ function renderWeaponOpts(body){
   const isPrimary=activeSlot==="primary";
   // Overkill: secondary can hold a primary
   const groups = (!isPrimary && has("ok")) ? WEAPONS.primary : WEAPONS[isPrimary?"primary":"secondary"];
-  if(!isPrimary && has("ok")) setNote("★ Overkill active — your secondary slot now holds a second primary weapon.");
+  if(!isPrimary && has("ok")) setNote(t("note").overkill);
   const cur=isPrimary?S.primary:S.secondary;
   const optsWrap=el("div","opts");
   Object.entries(groups).forEach(([cat,list])=>{
-    optCat(optsWrap,cat);
+    optCat(optsWrap,de(cat));
     list.forEach(w=>{
       const sel=cur===w;
       const dis=!sel && !cur && !canAdd(1);
@@ -504,16 +646,16 @@ function renderAttachOpts(body){
   const weapon=isP?S.primary:S.secondary;
   const arr=isP?S.primaryAtt:S.secondaryAtt;
   const max=isP?(has("pg")?3:2):(has("sg")?2:1);
-  if(!weapon){ setNote(`Equip a ${isP?"primary":"secondary"} weapon first to add attachments.`);
-    body.appendChild(el("div","empty-hint","No weapon in this slot yet.")); return; }
-  setNote(`${weapon} · ${arr.length}/${max} attachments used.`);
+  if(!weapon){ setNote(t("note").needWeapon(isP?t("primarySide"):t("secondarySide")));
+    body.appendChild(el("div","empty-hint",t("note").noWeapon)); return; }
+  setNote(t("note").attUsed(weapon,arr.length,max));
   const optsWrap=el("div","opts");
   Object.entries(ATTACHMENTS).forEach(([cat,list])=>{
-    optCat(optsWrap,cat);
+    optCat(optsWrap,de(cat));
     list.forEach(([n,d])=>{
       const sel=arr.includes(n);
       const dis=!sel && (arr.length>=max || !canAdd(1));
-      optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+      optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
         if(sel) arr.splice(arr.indexOf(n),1);
         else if(arr.length<max && canAdd(1)) arr.push(n);
         update();
@@ -527,12 +669,12 @@ function renderPerkOpts(body){
   const arr=S[activeSlot];
   const greed={perk1:"perk1",perk2:"perk2",perk3:"perk3"}[activeSlot];
   const max=has(greed)?2:1;
-  setNote(max>1?`★ ${tier} Greed active — up to two ${tier} perks.`:`Add ${tier} Greed wildcard for a second ${tier} perk.`);
+  setNote(max>1?t("note").greedOn(tier):t("note").greedOff(tier));
   const optsWrap=el("div","opts");
   PERKS[tier].forEach(([n,d])=>{
     const sel=arr.includes(n);
     const dis=!sel && (arr.length>=max || !canAdd(1));
-    optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+    optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
       if(sel) arr.splice(arr.indexOf(n),1);
       else if(arr.length<max && canAdd(1)) arr.push(n);
       update();
@@ -541,12 +683,12 @@ function renderPerkOpts(body){
   body.appendChild(optsWrap);
 }
 function renderMultiOpts(body,list,arr,max,wcName){
-  setNote(max>1?`★ ${wcName} active — carry two.`:`Add the ${wcName} wildcard to carry two.`);
+  setNote(max>1?t("note").multiOn(wcName):t("note").multiOff(wcName));
   const optsWrap=el("div","opts");
   list.forEach(([n,d])=>{
     const sel=arr.includes(n);
     const dis=!sel && (arr.length>=max || !canAdd(1));
-    optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+    optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
       if(sel) arr.splice(arr.indexOf(n),1);
       else if(arr.length<max && canAdd(1)) arr.push(n);
       update();
@@ -555,12 +697,12 @@ function renderMultiOpts(body,list,arr,max,wcName){
   body.appendChild(optsWrap);
 }
 function renderWildcards(body){
-  setNote("Each wildcard costs 1 point and unlocks an extra slot or rule. Removing one drops any picks it enabled.");
+  setNote(t("note").wildcards);
   const optsWrap=el("div","opts");
   WILDCARDS.forEach(([n,d,key])=>{
     const sel=S.wildcards.includes(key);
     const dis=!sel && !canAdd(1);
-    optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+    optsWrap.appendChild(makeOpt(n,de(d),sel,dis,()=>{
       if(sel){
         S.wildcards.splice(S.wildcards.indexOf(key),1);
         enforceWildcard(key);
@@ -654,25 +796,28 @@ function randomize(){
 
 /* ---------- EXPORT ---------- */
 function buildSummary(){
+  const E=t("exp");
   const L=[]; const line=(k,v)=>L.push((k+":").padEnd(16)+v);
+  const title=E.header, pad=Math.max(0, 36-title.length);
   L.push("╔═══════════════════════════════════════╗");
-  L.push("║   BLACK OPS II — CUSTOM CLASS         ║");
+  L.push("║   "+title+" ".repeat(pad)+"║");
   L.push("╚═══════════════════════════════════════╝");
   L.push("");
-  line("PRIMARY", (S.primary||"—") + (S.primaryAtt.length?"  ["+S.primaryAtt.join(", ")+"]":""));
-  line("SECONDARY", (S.secondary||"—") + (S.secondaryAtt.length?"  ["+S.secondaryAtt.join(", ")+"]":""));
-  line("PERK 1", S.perk1.join(", ")||"—");
-  line("PERK 2", S.perk2.join(", ")||"—");
-  line("PERK 3", S.perk3.join(", ")||"—");
-  line("LETHAL", S.lethal.join(", ")||"—");
-  line("TACTICAL", S.tactical.join(", ")||"—");
-  line("WILDCARDS", S.wildcards.length? S.wildcards.map(k=>WILDCARDS.find(w=>w[2]===k)[0]).join(", ") : "—");
+  line(E.primary, (S.primary||"—") + (S.primaryAtt.length?"  ["+S.primaryAtt.join(", ")+"]":""));
+  line(E.secondary, (S.secondary||"—") + (S.secondaryAtt.length?"  ["+S.secondaryAtt.join(", ")+"]":""));
+  line(E.perk1, S.perk1.join(", ")||"—");
+  line(E.perk2, S.perk2.join(", ")||"—");
+  line(E.perk3, S.perk3.join(", ")||"—");
+  line(E.lethal, S.lethal.join(", ")||"—");
+  line(E.tactical, S.tactical.join(", ")||"—");
+  line(E.wildcards, S.wildcards.length? S.wildcards.map(k=>WILDCARDS.find(w=>w[2]===k)[0]).join(", ") : "—");
   L.push("");
-  line("SCORESTREAKS", S.streaks.length? S.streaks.join(", ") : "—");
+  line(E.streaks, S.streaks.length? S.streaks.join(", ") : "—");
   L.push("");
   L.push("─".repeat(41));
   const used=pointsUsed();
-  L.push(`ALLOCATION: ${used} / ${MAX_POINTS} points  ${used>MAX_POINTS?"⚠ OVER BUDGET":used===MAX_POINTS?"✓ FULL LOADOUT":(MAX_POINTS-used)+" unspent"}`);
+  const status = used>MAX_POINTS?t("overBudget"):used===MAX_POINTS?t("fullLoadout"):t("unspent")(MAX_POINTS-used);
+  L.push(`${E.alloc(used)}  ${status}`);
   return L.join("\n");
 }
 function openExport(){
@@ -685,7 +830,7 @@ document.getElementById("exportBtn").addEventListener("click",openExport);
 document.getElementById("dlgClose").addEventListener("click",()=>exportDlg.close());
 document.getElementById("doneBtn").addEventListener("click",()=>exportDlg.close());
 document.getElementById("copyBtn").addEventListener("click",async e=>{
-  try{ await navigator.clipboard.writeText(buildSummary()); e.target.textContent="Copied ✓"; setTimeout(()=>e.target.textContent="Copy to clipboard",1500);}catch{ e.target.textContent="Copy failed"; }
+  try{ await navigator.clipboard.writeText(buildSummary()); e.target.textContent=t("copied"); setTimeout(()=>e.target.textContent=t("copy"),1500);}catch{ e.target.textContent=t("copyFail"); }
 });
 document.getElementById("randBtn").addEventListener("click",randomize);
 document.getElementById("themeBtn").addEventListener("click",()=>{
@@ -694,6 +839,24 @@ document.getElementById("themeBtn").addEventListener("click",()=>{
   r.setAttribute("data-theme", cur==="dark"?"light":"dark");
 });
 
+/* ---------- LANGUAGE ---------- */
+function applyLang(){
+  document.documentElement.lang = LANG;
+  const set=(id,val,html)=>{ const e=document.getElementById(id); if(e){ if(html) e.innerHTML=val; else e.textContent=val; } };
+  set("tSub",t("sub")); set("tTheme",t("theme")); set("tRand",t("rand")); set("tExport",t("export"));
+  set("langBtn",t("langBtn")); set("tAlloc",t("alloc")); set("tLoadout",t("loadout"));
+  set("tStreakInfo",t("streakInfo")); set("tStreakTotal",t("streakTotal"));
+  set("tDlgTitle",t("dlgTitle")); set("copyBtn",t("copy")); set("doneBtn",t("done"));
+  set("tFooter",t("footer"),true);
+  document.getElementById("exportBtn").setAttribute("aria-label",t("export"));
+  update(); renderStreaks();
+}
+document.getElementById("langBtn").addEventListener("click",()=>{
+  LANG = LANG==="de"?"en":"de";
+  localStorage.setItem("bo2lang",LANG);
+  applyLang();
+});
+
 /* ---------- INIT ---------- */
-renderMeter(); renderRack(); renderPanel(); renderStreaks();
+applyLang(); renderStreaks();
 </script>
