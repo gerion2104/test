@@ -1,0 +1,699 @@
+<title>Black Ops II — Create-A-Class</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --bg:#0a0c0b; --bg2:#0e100e; --panel:#14120d; --panel2:#1b1811;
+  --line:#2a271d; --line2:#3a3527;
+  --accent:#ff7a18; --accent-dim:#c85e12; --amber:#ffb84d;
+  --alert:#e23b2e; --good:#7dcf4a;
+  --text:#ece7db; --muted:#948d79; --faint:#5f5a4b;
+  --slot:#100e0a;
+  --font-disp:"Oswald","Bebas Neue","Arial Narrow",system-ui,sans-serif;
+  --font-body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+:root[data-theme="light"]{
+  --bg:#dedacb; --bg2:#e7e3d5; --panel:#f2eee1; --panel2:#e9e4d3;
+  --line:#cbc5b0; --line2:#b7b099;
+  --slot:#f6f2e6;
+  --text:#211f16; --muted:#6a6350; --faint:#8f886f;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme]){
+    --bg:#dedacb; --bg2:#e7e3d5; --panel:#f2eee1; --panel2:#e9e4d3;
+    --line:#cbc5b0; --line2:#b7b099; --slot:#f6f2e6;
+    --text:#211f16; --muted:#6a6350; --faint:#8f886f;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:
+    radial-gradient(1200px 600px at 82% -10%, rgba(255,122,24,.10), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.010) 0 2px, transparent 2px 8px),
+    var(--bg);
+  color:var(--text); font-family:var(--font-body);
+  font-size:15px; line-height:1.5; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.disp{font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.06em; font-weight:600; margin:0}
+.wrap{max-width:1240px; margin:0 auto; padding:20px clamp(14px,3vw,32px) 90px}
+
+/* header */
+.top{display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:6px 2px 18px; border-bottom:1px solid var(--line)}
+.brand{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.brand .kilo{color:var(--accent); font-weight:700}
+.brand h1{font-size:clamp(20px,3.4vw,30px); letter-spacing:.14em; text-wrap:balance}
+.brand .sub{font-family:var(--font-disp); letter-spacing:.34em; font-size:12px; color:var(--muted)}
+.top .spacer{flex:1}
+.btn{
+  font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.12em; font-size:12px;
+  background:var(--panel2); color:var(--text); border:1px solid var(--line2);
+  padding:9px 14px; cursor:pointer; border-radius:2px; transition:.15s;
+}
+.btn:hover{border-color:var(--accent); color:var(--amber)}
+.btn.accent{background:var(--accent); color:#160c02; border-color:var(--accent); font-weight:700}
+.btn.accent:hover{background:var(--amber); color:#160c02}
+.btn:focus-visible,.slot:focus-visible,.opt:focus-visible,.chip:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+
+/* pick-10 meter */
+.meter{
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  background:linear-gradient(180deg,var(--panel),var(--bg2)); border:1px solid var(--line);
+  border-left:3px solid var(--accent); padding:14px 18px; margin:18px 0 20px; border-radius:3px;
+}
+.meter .lbl{font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.18em; font-size:13px; color:var(--muted)}
+.pips{display:flex; gap:5px; flex:1; min-width:200px}
+.pip{flex:1; height:26px; background:var(--slot); border:1px solid var(--line2); border-radius:1px; position:relative; overflow:hidden}
+.pip.on{background:linear-gradient(180deg,var(--amber),var(--accent)); border-color:var(--accent); box-shadow:0 0 8px rgba(255,122,24,.5) inset}
+.pip.over{background:var(--alert); border-color:var(--alert)}
+.count{font-family:var(--font-disp); font-size:34px; letter-spacing:.02em; line-height:1; font-variant-numeric:tabular-nums}
+.count b{color:var(--accent)}
+.count.over b{color:var(--alert)}
+.count small{font-size:14px; color:var(--muted); letter-spacing:.1em}
+
+/* layout */
+.grid{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1.25fr); gap:18px; align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+
+.card{background:linear-gradient(180deg,var(--panel),var(--bg2)); border:1px solid var(--line); border-radius:3px}
+.card > .hd{
+  display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--line);
+  font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.16em; font-size:13px; color:var(--muted);
+}
+.hd .tick{width:9px; height:9px; background:var(--accent); transform:rotate(45deg)}
+
+/* slot rack */
+.rack{padding:8px}
+.slot{
+  width:100%; display:grid; grid-template-columns:34px 1fr auto; align-items:center; gap:12px;
+  background:var(--slot); border:1px solid var(--line); border-left:3px solid var(--line2);
+  color:var(--text); text-align:left; padding:10px 12px; margin:6px 0; cursor:pointer;
+  border-radius:2px; font:inherit; transition:.14s;
+}
+.slot:hover{border-left-color:var(--accent); background:var(--panel2)}
+.slot.active{border-left-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset}
+.slot .ico{font-family:var(--font-disp); font-size:20px; color:var(--accent); text-align:center; opacity:.9}
+.slot .body .k{font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.14em; font-size:11px; color:var(--muted)}
+.slot .body .v{font-size:15px; font-weight:600; color:var(--text); line-height:1.25}
+.slot .body .v.empty{color:var(--faint); font-weight:400; font-style:italic}
+.slot .cost{font-family:var(--font-disp); font-variant-numeric:tabular-nums; font-size:12px; color:var(--muted); letter-spacing:.08em; white-space:nowrap}
+.slot .cost b{color:var(--amber)}
+.tags{display:flex; flex-wrap:wrap; gap:5px; margin-top:5px}
+.tag{font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.08em; font-size:10.5px; color:var(--amber); background:rgba(255,122,24,.12); border:1px solid rgba(255,122,24,.35); padding:2px 7px; border-radius:2px}
+
+/* selection panel */
+.panel{min-height:420px}
+.panel .phd{display:flex; align-items:center; justify-content:space-between; padding:11px 14px; border-bottom:1px solid var(--line)}
+.panel .phd .t{font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.14em; font-size:15px}
+.panel .phd .t small{display:block; font-size:11px; letter-spacing:.2em; color:var(--muted); margin-top:2px}
+.panel .note{padding:8px 14px; font-size:12px; color:var(--muted); border-bottom:1px solid var(--line); background:rgba(255,184,77,.05)}
+.opts{padding:10px; display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px}
+.optcat{grid-column:1/-1; font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.2em; font-size:11px; color:var(--accent); padding:10px 4px 2px; border-bottom:1px solid var(--line); margin-top:4px}
+.optcat:first-child{margin-top:0}
+.opt{
+  display:flex; flex-direction:column; gap:3px; background:var(--slot); border:1px solid var(--line);
+  color:var(--text); text-align:left; padding:9px 11px; cursor:pointer; border-radius:2px; font:inherit; transition:.12s;
+}
+.opt:hover{border-color:var(--accent); background:var(--panel2)}
+.opt.sel{border-color:var(--accent); background:rgba(255,122,24,.14); box-shadow:0 0 0 1px var(--accent) inset}
+.opt.disabled{opacity:.4; cursor:not-allowed}
+.opt .n{font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.06em; font-weight:600; font-size:14px}
+.opt .d{font-size:11.5px; color:var(--muted); line-height:1.35}
+.opt .chk{position:absolute}
+.opt-none{grid-column:1/-1}
+.empty-hint{padding:40px 20px; text-align:center; color:var(--faint)}
+.empty-hint .big{font-family:var(--font-disp); font-size:19px; letter-spacing:.14em; color:var(--muted); margin-bottom:6px}
+
+/* scorestreaks */
+.streaks{margin-top:18px}
+.streakwrap{padding:12px}
+.streakbar{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:0 14px 10px; color:var(--muted); font-size:12px}
+.streakbar b{color:var(--amber); font-family:var(--font-disp); font-size:15px; letter-spacing:.06em}
+.chips{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:7px; padding:0 12px 12px}
+.chip{
+  display:flex; justify-content:space-between; align-items:center; gap:8px; background:var(--slot);
+  border:1px solid var(--line); color:var(--text); padding:8px 10px; cursor:pointer; border-radius:2px; font:inherit; transition:.12s;
+}
+.chip:hover{border-color:var(--accent)}
+.chip.sel{border-color:var(--accent); background:rgba(255,122,24,.13); box-shadow:0 0 0 1px var(--accent) inset}
+.chip .cn{font-family:var(--font-disp); text-transform:uppercase; letter-spacing:.05em; font-weight:600; font-size:13px}
+.chip .cc{font-family:var(--font-disp); font-variant-numeric:tabular-nums; font-size:12px; color:var(--amber)}
+.chip.sel .cc{color:var(--accent)}
+
+/* export */
+dialog{border:1px solid var(--line2); background:var(--panel); color:var(--text); border-radius:4px; padding:0; max-width:560px; width:92vw}
+dialog::backdrop{background:rgba(0,0,0,.66)}
+dialog .dhd{padding:14px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center}
+dialog h3{font-size:16px; letter-spacing:.12em}
+dialog pre{margin:0; padding:16px 18px; white-space:pre-wrap; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; color:var(--text); max-height:52vh; overflow:auto}
+dialog .dft{padding:12px 18px; border-top:1px solid var(--line); display:flex; gap:10px; justify-content:flex-end}
+.x{background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; line-height:1}
+.x:hover{color:var(--accent)}
+footer{margin-top:26px; padding-top:14px; border-top:1px solid var(--line); color:var(--faint); font-size:12px; text-align:center; line-height:1.7}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="kilo disp" style="font-size:26px">CALL<span style="color:var(--accent)">°</span>DUTY</span>
+      <div>
+        <h1>Black Ops <span style="color:var(--accent)">II</span> — Create-A-Class</h1>
+        <div class="sub">Pick 10 · Loadout Terminal</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="themeBtn" aria-label="Toggle theme">◐ Theme</button>
+    <button class="btn" id="randBtn">⟳ Randomize</button>
+    <button class="btn accent" id="exportBtn">Export Class ▸</button>
+  </header>
+
+  <section class="meter" aria-label="Allocation points">
+    <span class="lbl">Allocation</span>
+    <div class="pips" id="pips" aria-hidden="true"></div>
+    <div class="count" id="count"><b>0</b><small> / 10 PTS</small></div>
+  </section>
+
+  <div class="grid">
+    <!-- LEFT: slot rack -->
+    <div>
+      <div class="card">
+        <div class="hd"><span class="tick"></span> Loadout</div>
+        <div class="rack" id="rack"></div>
+      </div>
+
+      <div class="card streaks">
+        <div class="hd"><span class="tick"></span> Scorestreaks</div>
+        <div class="streakbar">Select your streaks · earned by score, not just kills. <span style="flex:1"></span> Cheapest earns first · Total cost <b id="ssCost">0</b></div>
+        <div class="chips" id="streaks"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: selection panel -->
+    <div class="card panel" id="panelCard">
+      <div class="phd">
+        <div class="t" id="panelTitle">Select a slot<small id="panelSub">— tap any loadout slot to the left —</small></div>
+      </div>
+      <div id="panelNote"></div>
+      <div id="panelBody">
+        <div class="empty-hint">
+          <div class="big">Build your class</div>
+          Ten allocation points. Every weapon, attachment, perk,<br>grenade and wildcard costs one. Spend them wisely, soldier.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Fan-made loadout tool · <em>Call of Duty: Black Ops II</em> and all weapon, perk &amp; scorestreak names are © Activision / Treyarch.<br>
+    Not affiliated with or endorsed by Activision. Built for fun.
+  </footer>
+</div>
+
+<dialog id="exportDlg">
+  <div class="dhd"><h3>Class Summary</h3><button class="x" id="dlgClose" aria-label="Close">×</button></div>
+  <pre id="exportText"></pre>
+  <div class="dft">
+    <button class="btn" id="copyBtn">Copy to clipboard</button>
+    <button class="btn accent" id="doneBtn">Done</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+/* ---------- BLACK OPS II DATA ---------- */
+const WEAPONS = {
+  primary:{
+    "Assault Rifles":["SMR","MTAR","Type 25","SWAT-556","FAL OSW","M27","SCAR-H","M8A1","AN-94"],
+    "SMGs":["Chicom CQB","MP7","Skorpion EVO III","PDW-57","Vector K10","MSMC","Peacekeeper"],
+    "LMGs":["QBB LSW","Mk 48","HAMR","LSAT"],
+    "Sniper Rifles":["SVU-AS","DSR 50","Ballista","XPR-50"],
+    "Shotguns":["R870 MCS","S12","KSG","M1216"],
+    "Special":["Assault Shield"]
+  },
+  secondary:{
+    "Pistols":["Five-Seven","B23R","TAC-45","KAP-40","Executioner"],
+    "Launchers":["SMAW","FHJ-18 AA"],
+    "Special":["Combat Knife","Assault Shield"]
+  }
+};
+const ATTACHMENTS = {
+  "Optics":[
+    ["Reflex Sight","Precision red-dot sight."],
+    ["EOTech Sight","Holographic sight, wider view."],
+    ["ACOG Scope","Magnified optic for range."],
+    ["Hybrid Optic","Toggle between reflex & ACOG."],
+    ["Target Finder","Diamond-locks onto enemies."],
+    ["MMS","Millimeter scanner sees through smoke."],
+    ["Dual Band","Thermal scope, ranged targets."],
+    ["Iron Sights","Swap default sights."]
+  ],
+  "Rails & Barrel":[
+    ["Fast Mag","Faster reloads."],
+    ["Long Barrel","Increased range."],
+    ["Quickdraw","Faster aim-down-sight."],
+    ["Fore Grip","Reduced recoil."],
+    ["Adjustable Stock","Faster strafe & ADS movement."],
+    ["Laser Sight","Tighter hip-fire spread."],
+    ["Suppressor","Silenced, stays off radar."],
+    ["FMJ","Extra damage to vehicles & surfaces."],
+    ["Select Fire","Toggle semi / full auto."]
+  ]
+};
+const PERKS = {
+  "Perk 1":[
+    ["Lightweight","Move faster, no fall damage."],
+    ["Hardline","Scorestreaks cost 1 less point."],
+    ["Flak Jacket","Resist explosive damage."],
+    ["Scavenger","Resupply ammo from the dead."],
+    ["Ghost","Off radar while moving vs UAV."],
+    ["Blind Eye","Undetectable by AI & air support."]
+  ],
+  "Perk 2":[
+    ["Toughness","Flinch less when shot."],
+    ["Cold Blooded","Resist target finders & AI targeting."],
+    ["Fast Hands","Faster swaps & equipment use."],
+    ["Hard Wired","Immune to Counter-UAV & EMP."]
+  ],
+  "Perk 3":[
+    ["Dexterity","Faster mantle & aim after sprint."],
+    ["Extreme Conditioning","Sprint for longer."],
+    ["Awareness","Enemy movement is louder."],
+    ["Dead Silence","Your movement is silent."],
+    ["Tactical Mask","Resist flash, concussion & gas."],
+    ["Engineer","See & re-roll equipment, delay streaks."]
+  ]
+};
+const LETHAL = [
+  ["Frag","Cookable timed grenade."],
+  ["Semtex","Timed sticky explosive."],
+  ["Combat Axe","One-hit thrown axe, retrievable."],
+  ["Bouncing Betty","Pops up and detonates."],
+  ["C4","Remote-detonated charge."]
+];
+const TACTICAL = [
+  ["Concussion","Slows enemy movement & aim."],
+  ["Flashbang","Blinds & deafens."],
+  ["Smoke Grenade","Screening smoke cloud."],
+  ["Sensor Grenade","Pings nearby enemies."],
+  ["Shock Charge","Stuns enemies who trip it."],
+  ["EMP Grenade","Disables electronics & HUD."],
+  ["Trophy System","Destroys incoming projectiles."],
+  ["Black Hat PDA","Hack equipment & care packages."],
+  ["Tactical Insertion","Set your respawn point."]
+];
+const WILDCARDS = [
+  ["Perk 1 Greed","Equip a second Perk 1.","perk1"],
+  ["Perk 2 Greed","Equip a second Perk 2.","perk2"],
+  ["Perk 3 Greed","Equip a second Perk 3.","perk3"],
+  ["Primary Gunfighter","A third attachment on your primary.","pg"],
+  ["Secondary Gunfighter","A second attachment on your secondary.","sg"],
+  ["Overkill","Carry two primary weapons.","ok"],
+  ["Danger Close","Carry a second lethal grenade.","dc"],
+  ["Tactician","Carry a second tactical grenade.","tac"]
+];
+const SCORESTREAKS = [
+  ["UAV",425],["RC-XD",450],["Hunter Killer",525],["Care Package",550],
+  ["Counter-UAV",600],["Guardian",650],["Hellstorm Missile",700],["Lightning Strike",750],
+  ["Sentry Gun",800],["Death Machine",850],["War Machine",900],["Dragonfire",975],
+  ["A.G.R.",1000],["Stealth Chopper",1100],["Orbital VSAT",1200],["Escort Drone",1250],
+  ["EMP Systems",1300],["Warthog",1400],["Lodestar",1500],["VTOL Warship",1600],
+  ["K9 Unit",900],["Swarm",1900]
+];
+const MAX_POINTS = 10;
+
+/* ---------- STATE ---------- */
+const S = {
+  primary:null, primaryAtt:[],
+  secondary:null, secondaryAtt:[],
+  perk1:[], perk2:[], perk3:[],
+  lethal:[], tactical:[],
+  wildcards:[],
+  streaks:[]
+};
+let activeSlot = null;
+
+/* ---------- HELPERS ---------- */
+const has = wc => S.wildcards.includes(wc);
+function pointsUsed(){
+  let p=0;
+  if(S.primary) p++;
+  p += S.primaryAtt.length;
+  if(S.secondary) p++;
+  p += S.secondaryAtt.length;
+  p += S.perk1.length + S.perk2.length + S.perk3.length;
+  p += S.lethal.length + S.tactical.length;
+  p += S.wildcards.length;
+  return p;
+}
+const remaining = () => MAX_POINTS - pointsUsed();
+function canAdd(n=1){ return remaining() >= n; }
+
+const el=(t,c,txt)=>{const e=document.createElement(t); if(c)e.className=c; if(txt!=null)e.textContent=txt; return e;};
+
+/* ---------- SLOT RACK ---------- */
+const SLOTS = [
+  {id:"primary",   icon:"➊", label:"Primary Weapon"},
+  {id:"primaryAtt",icon:"⛭", label:"Primary Attachments"},
+  {id:"secondary", icon:"➋", label:"Secondary Weapon"},
+  {id:"secondaryAtt",icon:"⛭",label:"Secondary Attachment"},
+  {id:"perk1",     icon:"❶", label:"Perk 1"},
+  {id:"perk2",     icon:"❷", label:"Perk 2"},
+  {id:"perk3",     icon:"❸", label:"Perk 3"},
+  {id:"lethal",    icon:"✸", label:"Lethal"},
+  {id:"tactical",  icon:"◈", label:"Tactical"},
+  {id:"wildcards", icon:"★", label:"Wildcards"}
+];
+function slotValue(id){
+  switch(id){
+    case "primary": return S.primary || "";
+    case "secondary": return S.secondary || "";
+    case "primaryAtt": return S.primaryAtt;
+    case "secondaryAtt": return S.secondaryAtt;
+    case "perk1": return S.perk1; case "perk2": return S.perk2; case "perk3": return S.perk3;
+    case "lethal": return S.lethal; case "tactical": return S.tactical;
+    case "wildcards": return S.wildcards;
+  }
+}
+function slotCost(id){
+  const v=slotValue(id);
+  if(id==="primary"||id==="secondary") return v?1:0;
+  return Array.isArray(v)?v.length:0;
+}
+function renderRack(){
+  const rack=document.getElementById("rack"); rack.innerHTML="";
+  SLOTS.forEach(sl=>{
+    const b=el("button","slot"); b.type="button";
+    b.setAttribute("aria-pressed", activeSlot===sl.id);
+    if(activeSlot===sl.id) b.classList.add("active");
+    b.appendChild(el("span","ico",sl.icon));
+    const body=el("div","body");
+    body.appendChild(el("div","k",sl.label));
+    const v=slotValue(sl.id);
+    if(Array.isArray(v)){
+      if(v.length){
+        body.appendChild(el("div","v", sl.id==="wildcards"?`${v.length} equipped`:v[0]));
+        const tags=el("div","tags");
+        v.forEach(x=>tags.appendChild(el("span","tag",x)));
+        body.appendChild(tags);
+      } else {
+        body.appendChild(el("div","v empty","— empty —"));
+      }
+    } else {
+      const d=el("div","v"+(v?"":" empty"), v||"— empty —");
+      body.appendChild(d);
+    }
+    b.appendChild(body);
+    const cost=slotCost(sl.id);
+    const c=el("div","cost"); c.innerHTML= cost? `<b>${cost}</b> PT`+(cost>1?"S":"") : "0 PTS";
+    b.appendChild(c);
+    b.addEventListener("click",()=>{ activeSlot=sl.id; renderRack(); renderPanel(); });
+    rack.appendChild(b);
+  });
+}
+
+/* ---------- POINT METER ---------- */
+function renderMeter(){
+  const used=pointsUsed(), over=used>MAX_POINTS;
+  const pips=document.getElementById("pips"); pips.innerHTML="";
+  for(let i=0;i<MAX_POINTS;i++){
+    const p=el("div","pip");
+    if(i<Math.min(used,MAX_POINTS)) p.classList.add("on");
+    pips.appendChild(p);
+  }
+  if(over){ // paint overflow on last pip
+    pips.lastChild.classList.remove("on"); pips.lastChild.classList.add("over");
+  }
+  const c=document.getElementById("count");
+  c.classList.toggle("over",over);
+  c.innerHTML=`<b>${used}</b><small> / ${MAX_POINTS} PTS</small>`;
+}
+
+/* ---------- SELECTION PANEL ---------- */
+function setNote(txt){
+  const n=document.getElementById("panelNote");
+  n.innerHTML = txt? `<div class="note">${txt}</div>` : "";
+}
+function renderPanel(){
+  const title=document.getElementById("panelTitle");
+  const sub=document.getElementById("panelSub");
+  const body=document.getElementById("panelBody");
+  body.innerHTML=""; setNote("");
+  if(!activeSlot){
+    title.firstChild.textContent="Select a slot";
+    sub.textContent="— tap any loadout slot to the left —";
+    body.innerHTML='<div class="empty-hint"><div class="big">Build your class</div>Ten allocation points. Every weapon, attachment, perk,<br>grenade and wildcard costs one.</div>';
+    return;
+  }
+  const meta={
+    primary:["Primary Weapon","CHOOSE ONE · 1 PT"],
+    primaryAtt:["Primary Attachments",`MAX ${has("pg")?3:2} · 1 PT EACH`],
+    secondary:["Secondary Weapon","CHOOSE ONE · 1 PT"],
+    secondaryAtt:["Secondary Attachment",`MAX ${has("sg")?2:1} · 1 PT EACH`],
+    perk1:["Perk 1",`MAX ${has("perk1")?2:1} · 1 PT EACH`],
+    perk2:["Perk 2",`MAX ${has("perk2")?2:1} · 1 PT EACH`],
+    perk3:["Perk 3",`MAX ${has("perk3")?2:1} · 1 PT EACH`],
+    lethal:["Lethal",`MAX ${has("dc")?2:1} · 1 PT EACH`],
+    tactical:["Tactical",`MAX ${has("tac")?2:1} · 1 PT EACH`],
+    wildcards:["Wildcards","1 PT EACH · UNLOCK EXTRA SLOTS"]
+  }[activeSlot];
+  title.firstChild.textContent=meta[0];
+  sub.textContent=meta[1];
+
+  if(activeSlot==="primary"||activeSlot==="secondary") return renderWeaponOpts(body);
+  if(activeSlot==="primaryAtt"||activeSlot==="secondaryAtt") return renderAttachOpts(body);
+  if(activeSlot==="perk1"||activeSlot==="perk2"||activeSlot==="perk3") return renderPerkOpts(body);
+  if(activeSlot==="lethal") return renderMultiOpts(body,LETHAL,S.lethal,has("dc")?2:1,"Danger Close");
+  if(activeSlot==="tactical") return renderMultiOpts(body,TACTICAL,S.tactical,has("tac")?2:1,"Tactician");
+  if(activeSlot==="wildcards") return renderWildcards(body);
+}
+
+function optCat(body,label){ body.appendChild(el("div","optcat",label)); }
+function makeOpt(name,desc,selected,disabled,onClick){
+  const b=el("button","opt"+(selected?" sel":"")+(disabled&&!selected?" disabled":"")); b.type="button";
+  b.appendChild(el("div","n",name));
+  if(desc) b.appendChild(el("div","d",desc));
+  if(!(disabled&&!selected)) b.addEventListener("click",onClick);
+  return b;
+}
+function renderWeaponOpts(body){
+  const isPrimary=activeSlot==="primary";
+  // Overkill: secondary can hold a primary
+  const groups = (!isPrimary && has("ok")) ? WEAPONS.primary : WEAPONS[isPrimary?"primary":"secondary"];
+  if(!isPrimary && has("ok")) setNote("★ Overkill active — your secondary slot now holds a second primary weapon.");
+  const cur=isPrimary?S.primary:S.secondary;
+  const optsWrap=el("div","opts");
+  Object.entries(groups).forEach(([cat,list])=>{
+    optCat(optsWrap,cat);
+    list.forEach(w=>{
+      const sel=cur===w;
+      const dis=!sel && !cur && !canAdd(1);
+      optsWrap.appendChild(makeOpt(w,"",sel,dis,()=>{
+        if(isPrimary) S.primary = sel?null:w; else S.secondary = sel?null:w;
+        if(sel){ // clearing weapon clears its attachments
+          if(isPrimary) S.primaryAtt=[]; else S.secondaryAtt=[];
+        }
+        update();
+      }));
+    });
+  });
+  body.appendChild(optsWrap);
+}
+function renderAttachOpts(body){
+  const isP=activeSlot==="primaryAtt";
+  const weapon=isP?S.primary:S.secondary;
+  const arr=isP?S.primaryAtt:S.secondaryAtt;
+  const max=isP?(has("pg")?3:2):(has("sg")?2:1);
+  if(!weapon){ setNote(`Equip a ${isP?"primary":"secondary"} weapon first to add attachments.`);
+    body.appendChild(el("div","empty-hint","No weapon in this slot yet.")); return; }
+  setNote(`${weapon} · ${arr.length}/${max} attachments used.`);
+  const optsWrap=el("div","opts");
+  Object.entries(ATTACHMENTS).forEach(([cat,list])=>{
+    optCat(optsWrap,cat);
+    list.forEach(([n,d])=>{
+      const sel=arr.includes(n);
+      const dis=!sel && (arr.length>=max || !canAdd(1));
+      optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+        if(sel) arr.splice(arr.indexOf(n),1);
+        else if(arr.length<max && canAdd(1)) arr.push(n);
+        update();
+      }));
+    });
+  });
+  body.appendChild(optsWrap);
+}
+function renderPerkOpts(body){
+  const tier={perk1:"Perk 1",perk2:"Perk 2",perk3:"Perk 3"}[activeSlot];
+  const arr=S[activeSlot];
+  const greed={perk1:"perk1",perk2:"perk2",perk3:"perk3"}[activeSlot];
+  const max=has(greed)?2:1;
+  setNote(max>1?`★ ${tier} Greed active — up to two ${tier} perks.`:`Add ${tier} Greed wildcard for a second ${tier} perk.`);
+  const optsWrap=el("div","opts");
+  PERKS[tier].forEach(([n,d])=>{
+    const sel=arr.includes(n);
+    const dis=!sel && (arr.length>=max || !canAdd(1));
+    optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+      if(sel) arr.splice(arr.indexOf(n),1);
+      else if(arr.length<max && canAdd(1)) arr.push(n);
+      update();
+    }));
+  });
+  body.appendChild(optsWrap);
+}
+function renderMultiOpts(body,list,arr,max,wcName){
+  setNote(max>1?`★ ${wcName} active — carry two.`:`Add the ${wcName} wildcard to carry two.`);
+  const optsWrap=el("div","opts");
+  list.forEach(([n,d])=>{
+    const sel=arr.includes(n);
+    const dis=!sel && (arr.length>=max || !canAdd(1));
+    optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+      if(sel) arr.splice(arr.indexOf(n),1);
+      else if(arr.length<max && canAdd(1)) arr.push(n);
+      update();
+    }));
+  });
+  body.appendChild(optsWrap);
+}
+function renderWildcards(body){
+  setNote("Each wildcard costs 1 point and unlocks an extra slot or rule. Removing one drops any picks it enabled.");
+  const optsWrap=el("div","opts");
+  WILDCARDS.forEach(([n,d,key])=>{
+    const sel=S.wildcards.includes(key);
+    const dis=!sel && !canAdd(1);
+    optsWrap.appendChild(makeOpt(n,d,sel,dis,()=>{
+      if(sel){
+        S.wildcards.splice(S.wildcards.indexOf(key),1);
+        enforceWildcard(key);
+      } else if(canAdd(1)) S.wildcards.push(key);
+      update();
+    }));
+  });
+  body.appendChild(optsWrap);
+}
+/* trim selections when a wildcard is removed */
+function enforceWildcard(key){
+  const cap=(arr,n)=>{ while(arr.length>n) arr.pop(); };
+  if(key==="perk1") cap(S.perk1,1);
+  if(key==="perk2") cap(S.perk2,1);
+  if(key==="perk3") cap(S.perk3,1);
+  if(key==="dc") cap(S.lethal,1);
+  if(key==="tac") cap(S.tactical,1);
+  if(key==="pg") cap(S.primaryAtt,2);
+  if(key==="sg") cap(S.secondaryAtt,1);
+  if(key==="ok"){ // secondary limited to real secondaries again
+    const secs=[].concat(...Object.values(WEAPONS.secondary));
+    if(S.secondary && !secs.includes(S.secondary)){ S.secondary=null; S.secondaryAtt=[]; }
+  }
+}
+
+/* ---------- SCORESTREAKS ---------- */
+function renderStreaks(){
+  const wrap=document.getElementById("streaks"); wrap.innerHTML="";
+  SCORESTREAKS.forEach(([n,cost])=>{
+    const sel=S.streaks.includes(n);
+    const b=el("button","chip"+(sel?" sel":"")); b.type="button";
+    b.setAttribute("aria-pressed",sel);
+    b.appendChild(el("span","cn",n));
+    b.appendChild(el("span","cc",cost));
+    b.addEventListener("click",()=>{
+      if(sel) S.streaks.splice(S.streaks.indexOf(n),1);
+      else S.streaks.push(n);
+      renderStreaks();
+    });
+    wrap.appendChild(b);
+  });
+  const total=SCORESTREAKS.filter(([n])=>S.streaks.includes(n)).reduce((a,[,c])=>a+c,0);
+  document.getElementById("ssCost").textContent=total;
+}
+
+/* ---------- UPDATE ---------- */
+function update(){ renderMeter(); renderRack(); renderPanel(); }
+
+/* ---------- RANDOMIZE ---------- */
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function randomize(){
+  // reset
+  Object.assign(S,{primary:null,primaryAtt:[],secondary:null,secondaryAtt:[],perk1:[],perk2:[],perk3:[],lethal:[],tactical:[],wildcards:[],streaks:S.streaks});
+  // build a spend plan up to 10
+  const primGroups=Object.values(WEAPONS.primary);
+  S.primary=pick(pick(primGroups));
+  // random wildcards first (0-2)
+  const wcKeys=WILDCARDS.map(w=>w[2]);
+  const nWc=Math.floor(Math.random()*3);
+  for(let i=0;i<nWc;i++){ if(!canAdd(1))break; const k=pick(wcKeys); if(!S.wildcards.includes(k)) S.wildcards.push(k); }
+  // secondary
+  if(canAdd(1) && Math.random()<0.7){
+    const grp = has("ok")?WEAPONS.primary:WEAPONS.secondary;
+    S.secondary=pick(pick(Object.values(grp)));
+  }
+  // attachments
+  const pMax=has("pg")?3:2;
+  const pAtt=[].concat(...Object.values(ATTACHMENTS)).map(a=>a[0]);
+  while(S.primary && S.primaryAtt.length<pMax && canAdd(1) && Math.random()<0.7){
+    const a=pick(pAtt); if(!S.primaryAtt.includes(a))S.primaryAtt.push(a);
+  }
+  if(has("sg") && S.secondary && canAdd(1) && Math.random()<0.5){ const a=pick(pAtt); S.secondaryAtt.push(a); }
+  // perks
+  const fillPerk=(tier,arr,key)=>{
+    const max=has(key)?2:1;
+    while(arr.length<max && canAdd(1) && Math.random()<0.85){
+      const p=pick(PERKS[tier])[0]; if(!arr.includes(p))arr.push(p);
+    }
+  };
+  fillPerk("Perk 1",S.perk1,"perk1"); fillPerk("Perk 2",S.perk2,"perk2"); fillPerk("Perk 3",S.perk3,"perk3");
+  // grenades
+  if(canAdd(1) && Math.random()<0.7) S.lethal.push(pick(LETHAL)[0]);
+  if(has("dc") && canAdd(1)) S.lethal.push(pick(LETHAL.filter(l=>!S.lethal.includes(l[0])))[0]);
+  if(canAdd(1) && Math.random()<0.7) S.tactical.push(pick(TACTICAL)[0]);
+  if(has("tac") && canAdd(1)){ const t=pick(TACTICAL.filter(l=>!S.tactical.includes(l[0]))); if(t)S.tactical.push(t[0]); }
+  // random streaks (3)
+  const shuffled=[...SCORESTREAKS].sort(()=>Math.random()-.5).slice(0,3).map(s=>s[0]);
+  S.streaks=shuffled;
+  activeSlot=null; update(); renderStreaks();
+}
+
+/* ---------- EXPORT ---------- */
+function buildSummary(){
+  const L=[]; const line=(k,v)=>L.push((k+":").padEnd(16)+v);
+  L.push("╔═══════════════════════════════════════╗");
+  L.push("║   BLACK OPS II — CUSTOM CLASS         ║");
+  L.push("╚═══════════════════════════════════════╝");
+  L.push("");
+  line("PRIMARY", (S.primary||"—") + (S.primaryAtt.length?"  ["+S.primaryAtt.join(", ")+"]":""));
+  line("SECONDARY", (S.secondary||"—") + (S.secondaryAtt.length?"  ["+S.secondaryAtt.join(", ")+"]":""));
+  line("PERK 1", S.perk1.join(", ")||"—");
+  line("PERK 2", S.perk2.join(", ")||"—");
+  line("PERK 3", S.perk3.join(", ")||"—");
+  line("LETHAL", S.lethal.join(", ")||"—");
+  line("TACTICAL", S.tactical.join(", ")||"—");
+  line("WILDCARDS", S.wildcards.length? S.wildcards.map(k=>WILDCARDS.find(w=>w[2]===k)[0]).join(", ") : "—");
+  L.push("");
+  line("SCORESTREAKS", S.streaks.length? S.streaks.join(", ") : "—");
+  L.push("");
+  L.push("─".repeat(41));
+  const used=pointsUsed();
+  L.push(`ALLOCATION: ${used} / ${MAX_POINTS} points  ${used>MAX_POINTS?"⚠ OVER BUDGET":used===MAX_POINTS?"✓ FULL LOADOUT":(MAX_POINTS-used)+" unspent"}`);
+  return L.join("\n");
+}
+function openExport(){
+  document.getElementById("exportText").textContent=buildSummary();
+  document.getElementById("exportDlg").showModal();
+}
+
+/* ---------- WIRING ---------- */
+document.getElementById("exportBtn").addEventListener("click",openExport);
+document.getElementById("dlgClose").addEventListener("click",()=>exportDlg.close());
+document.getElementById("doneBtn").addEventListener("click",()=>exportDlg.close());
+document.getElementById("copyBtn").addEventListener("click",async e=>{
+  try{ await navigator.clipboard.writeText(buildSummary()); e.target.textContent="Copied ✓"; setTimeout(()=>e.target.textContent="Copy to clipboard",1500);}catch{ e.target.textContent="Copy failed"; }
+});
+document.getElementById("randBtn").addEventListener("click",randomize);
+document.getElementById("themeBtn").addEventListener("click",()=>{
+  const r=document.documentElement;
+  const cur=r.getAttribute("data-theme")|| (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+  r.setAttribute("data-theme", cur==="dark"?"light":"dark");
+});
+
+/* ---------- INIT ---------- */
+renderMeter(); renderRack(); renderPanel(); renderStreaks();
+</script>
