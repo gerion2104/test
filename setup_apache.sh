@@ -167,12 +167,18 @@ HTML
 configure_vhost() {
     log "Konfiguriere VirtualHost fuer ${DOMAIN}:${PORT}"
 
-    local vhost_conf
+    # Log-Verzeichnis je Distribution.
+    # Hinweis: Apache unterstuetzt in Configs KEINE Bash-Default-Syntax
+    # (${VAR:-fallback}); daher setzen wir den Pfad hier explizit.
+    local vhost_conf log_dir
     if [ "$PKG_FAMILY" = "debian" ]; then
         vhost_conf="/etc/apache2/sites-available/${DOMAIN}.conf"
+        log_dir="/var/log/apache2"
     else
         vhost_conf="/etc/httpd/conf.d/${DOMAIN}.conf"
+        log_dir="/var/log/httpd"
     fi
+    mkdir -p "$log_dir"
 
     cat > "$vhost_conf" <<VHOST
 <VirtualHost *:${PORT}>
@@ -186,12 +192,23 @@ configure_vhost() {
         Require all granted
     </Directory>
 
-    ErrorLog \${APACHE_LOG_DIR:-/var/log/httpd}/${DOMAIN}_error.log
-    CustomLog \${APACHE_LOG_DIR:-/var/log/httpd}/${DOMAIN}_access.log combined
+    ErrorLog ${log_dir}/${DOMAIN}_error.log
+    CustomLog ${log_dir}/${DOMAIN}_access.log combined
 </VirtualHost>
 VHOST
 
     ok "VirtualHost geschrieben nach ${vhost_conf}"
+
+    # Globales ServerName setzen, um AH00558-Warnung zu vermeiden
+    local global_conf
+    if [ "$PKG_FAMILY" = "debian" ]; then
+        global_conf="/etc/apache2/conf-available/servername.conf"
+        echo "ServerName ${DOMAIN}" > "$global_conf"
+        a2enconf servername >/dev/null 2>&1 || true
+    else
+        global_conf="/etc/httpd/conf.d/servername.conf"
+        echo "ServerName ${DOMAIN}" > "$global_conf"
+    fi
 
     # Auf nicht-Standard-Port muss Apache zusaetzlich lauschen
     ensure_listen_port
